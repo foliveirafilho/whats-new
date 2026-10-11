@@ -1,0 +1,15 @@
+[Unit]
+Description=whats-new: daily AI news report (fetch + Claude curation)
+Documentation=file://@REPO_ROOT@/README.md
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=@REPO_ROOT@
+ExecStart=@REPO_ROOT@/bin/run.sh
+# uv and claude live in ~/.local/bin
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+# fetch + up to two Claude runs (20 min cap each) + a 10 min retry delay
+TimeoutStartSec=1h
+Nice=10

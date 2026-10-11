@@ -1,0 +1,10 @@
+[Unit]
+Description=Run whats-new every day at 07:30
+
+[Timer]
+OnCalendar=*-*-* 07:30:00
+Persistent=true
+RandomizedDelaySec=2min
+
+[Install]
+WantedBy=timers.target

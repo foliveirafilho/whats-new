@@ -1,0 +1,170 @@
+# Sources for `whats-new fetch`. Verified live on 2026-10-11.
+#
+# Fields:
+#   name, category (lab | news | community), kind (rss | hn | github_trending | hf_models | hf_papers | scrape), url
+#   enabled     = false to skip a source (say why in a comment)
+#   browser_ua  = true to send a browser User-Agent (default: an honest "whats-new/x.y" bot UA)
+#   [source.filters]
+#     keywords        = whole-word, case-insensitive match on title + summary; trailing * = prefix
+#     link_pattern    = (scrape) regex an absolute URL must match to count as an article
+#     min_points      = (hn) minimum HN points
+#     lookback_hours  = re-check this many hours before `since` (seen table prevents repeats);
+#                       default 24 (48 for kind=scrape, whose dates are day-granular)
+
+# --------------------------------------------------------------------------- Labs / vendors
+
+[[source]]
+name = "Anthropic News"
+category = "lab"
+kind = "scrape"
+# No official RSS (/rss.xml and /news/rss.xml are 404). The index renders server-side.
+url = "https://www.anthropic.com/news"
+filters.link_pattern = '^https://www\.anthropic\.com/news/[^/?#]+$'
+filters.require_date = true  # undated /news links are evergreen pages linked from the body
+
+[[source]]
+name = "Anthropic Engineering"
+category = "lab"
+kind = "scrape"
+# Engineering blog (Claude Code, agents, evals); no RSS either.
+url = "https://www.anthropic.com/engineering"
+filters.link_pattern = '^https://www\.anthropic\.com/engineering/[^/?#]+$'
+
+[[source]]
+name = "OpenAI News"
+category = "lab"
+kind = "rss"
+url = "https://openai.com/news/rss.xml"
+
+[[source]]
+name = "Google DeepMind Blog"
+category = "lab"
+kind = "rss"
+url = "https://deepmind.google/blog/rss.xml"
+
+[[source]]
+name = "Meta AI Blog"
+category = "lab"
+kind = "scrape"
+# No RSS. Note: ai.meta.com answers HTTP 400 to browser-like User-Agents; the bot UA works.
+url = "https://ai.meta.com/blog/"
+filters.link_pattern = '^https://ai\.meta\.com/blog/[^/?#]+/?$'
+
+[[source]]
+name = "Mistral AI News"
+category = "lab"
+kind = "rss"
+# Official feed (mistral.ai/rss.xml redirects here).
+url = "https://mistral.ai/news/rss"
+
+[[source]]
+name = "Hugging Face Blog"
+category = "lab"
+kind = "rss"
+url = "https://huggingface.co/blog/feed.xml"
+
+[[source]]
+name = "Vercel Blog"
+category = "lab"
+kind = "rss"
+url = "https://vercel.com/atom"
+
+[[source]]
+name = "AWS Machine Learning Blog"
+category = "lab"
+kind = "rss"
+url = "https://aws.amazon.com/blogs/machine-learning/feed/"
+
+# --------------------------------------------------------------------------- News
+
+[[source]]
+name = "The Verge AI"
+category = "news"
+kind = "rss"
+url = "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml"
+
+[[source]]
+name = "TechCrunch AI"
+category = "news"
+kind = "rss"
+url = "https://techcrunch.com/category/artificial-intelligence/feed/"
+
+[[source]]
+name = "Ars Technica AI"
+category = "news"
+kind = "rss"
+url = "https://arstechnica.com/ai/feed/"
+
+[[source]]
+name = "VentureBeat AI"
+category = "news"
+kind = "scrape"
+# The RSS feeds (/category/ai/feed, /feed, feedburner) are stale: newest item 2026-08-27
+# while the site publishes daily. Scrape the AI category page instead. The site sits behind
+# Vercel bot protection: 429 unless the request looks like a browser (browser UA + html Accept).
+url = "https://venturebeat.com/category/ai"
+browser_ua = true
+filters.link_pattern = '^https://venturebeat\.com/(?!author/|category/|tag/)[a-z-]+/[a-z0-9-]{20,}$'
+
+[[source]]
+name = "The Decoder"
+category = "news"
+kind = "rss"
+url = "https://the-decoder.com/feed/"
+
+# --------------------------------------------------------------------------- Community
+
+[[source]]
+name = "Hacker News (AI)"
+category = "community"
+kind = "hn"
+# Algolia search_by_date over stories created since `since` (minus lookback) with >= min_points.
+url = "https://hn.algolia.com/api/v1/search_by_date"
+filters.min_points = 50
+filters.keywords = [
+  "AI", "AGI", "LLM*", "GPT*", "ChatGPT", "OpenAI", "Anthropic", "Claude", "Gemini", "Gemma",
+  "DeepMind", "Llama", "Mistral", "Qwen", "DeepSeek", "Grok", "xAI", "Copilot", "Cursor", "Codex",
+  "agent", "agents", "agentic", "MCP", "RAG", "embedding*", "inference", "fine-tun*", "finetun*",
+  "transformer*", "diffusion", "neural", "machine learning", "deep learning", "ML", "model weights",
+  "language model*", "chatbot*", "prompt*", "Hugging Face", "HuggingFace", "Ollama", "llama.cpp",
+  "vLLM", "Stable Diffusion", "Midjourney", "Sora", "Perplexity", "NVIDIA", "GPU*", "vibe coding",
+]
+
+[[source]]
+name = "GitHub Trending"
+category = "community"
+kind = "github_trending"
+# Daily trending page (no API). Kept only when name/description looks AI-related.
+url = "https://github.com/trending?since=daily"
+filters.keywords = [
+  "AI", "LLM*", "GPT*", "agent", "agents", "agentic", "Claude", "OpenAI", "Anthropic", "Gemini",
+  "MCP", "RAG", "model", "models", "inference", "embedding*", "transformer*", "diffusion", "neural",
+  "machine learning", "deep learning", "ML", "chatbot*", "prompt*", "Ollama", "llama*", "Qwen",
+  "DeepSeek", "vLLM", "fine-tun*", "copilot", "codex", "multimodal", "speech", "TTS", "ASR",
+  "vision", "RL", "reinforcement learning", "autonomous", "assistant", "vibe coding", "context engineering",
+]
+
+[[source]]
+name = "Hugging Face Trending Models"
+category = "community"
+kind = "hf_models"
+url = "https://huggingface.co/api/models?sort=trendingScore&limit=25"
+
+[[source]]
+name = "Hugging Face Daily Papers"
+category = "community"
+kind = "hf_papers"
+url = "https://huggingface.co/api/daily_papers?limit=50"
+
+[[source]]
+name = "Product Hunt (AI)"
+category = "community"
+kind = "rss"
+# The AI topic feed (/topics/artificial-intelligence/feed) is 403 behind Cloudflare, and the
+# GraphQL API needs a token. The public all-products Atom feed works; filter it to AI launches.
+url = "https://www.producthunt.com/feed"
+filters.keywords = [
+  "AI", "LLM*", "GPT*", "ChatGPT", "Claude", "OpenAI", "Gemini", "agent", "agents", "agentic",
+  "MCP", "RAG", "copilot", "assistant", "chatbot*", "prompt*", "model", "models", "automation*",
+  "automate*", "voice", "generat*", "machine learning", "Perplexity", "vibe coding", "Cursor",
+]
