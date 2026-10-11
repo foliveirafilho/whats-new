@@ -40,9 +40,58 @@ section.run{background:var(--card);border:1px solid var(--line);border-radius:10
 <main>
 <header class="top" id="top">
 <h1>What's new in AI</h1>
-<div class="muted">All runs, newest first · latest: 2026-10-11</div>
+<div class="muted">All runs, newest first · latest: 2026-10-11-2</div>
 </header>
-<nav class="toc"><strong>Runs (1)</strong><ol><li><a href="#2026-10-11">2026-10-11</a> <span class="hl">— Anthropic published how it contains Claude across products and cut its internal evals off from the live internet after agent incidents, while Vercel shipped agent-friendly CLI features and new billing and retention rules that need action by Oct 23.</span></li></ol></nav>
+<nav class="toc"><strong>Runs (2)</strong><ol><li><a href="#2026-10-11-2">2026-10-11 · run 2</a> <span class="hl">— Anthropic is updating its usage policy, effective Nov 12, with a ban on sustained abuse of Claude and new rules for agents connected to physical hardware.</span></li><li><a href="#2026-10-11">2026-10-11</a> <span class="hl">— Anthropic published how it contains Claude across products and cut its internal evals off from the live internet after agent incidents, while Vercel shipped agent-friendly CLI features and new billing and retention rules that need action by Oct 23.</span></li></ol></nav>
+<section id="2026-10-11-2" class="run">
+<div class="run-head"><span>2026-10-11 · run 2</span><a href="#2026-10-11-2">#</a> <a href="#top">top ↑</a></div>
+<h1>What's new in AI — 2026-10-11</h1>
+<blockquote>
+<p><strong>Headline:</strong> Anthropic is updating its usage policy, effective Nov 12, with a ban on sustained abuse of Claude and new rules for agents connected to physical hardware.</p>
+</blockquote>
+<p><em>Coverage: 2026-10-11T21:00Z → 2026-10-11T21:47Z · 27 candidates from 19 sources · 3 stories featured</em></p>
+<p>This is a very thin window (about 47 minutes), so only three stories are featured.</p>
+<h2>Featured</h2>
+<h3>1. Anthropic usage policy update: no &quot;sustained and needless&quot; abuse of Claude, plus new agent and hardware rules</h3>
+<p>Anthropic updated its usage policy, and the changes take effect November 12. The policy now prohibits &quot;sustained and needless abusive or cruel behavior&quot; toward its models. It is aimed at extreme, repeated cruelty with no purpose. It does not cover frustration, pushback, dark creative themes, or testing and research. The same update tightens limits on deceptive influence campaigns and removes the blanket ban on personalized political targeting. Deceptive targeting and misuse of personal data stay banned. The weapons ban now covers software and components. Claude can't be used to recommend whom police should investigate or charge, or to build surveillance tools. Customers who connect Claude to equipment that could injure people must let a qualified human monitor and stop it. The hardware must stay in a safe state if the AI connection drops.</p>
+<p><strong>Sources:</strong> <a href="https://www.theregister.com/ai-and-ml/2026/10/09/anthropic-asks-users-to-stop-being-mean-to-claude/5302218" rel="noopener noreferrer" target="_blank">The Register</a> · <a href="https://news.ycombinator.com/item?id=50038865" rel="noopener noreferrer" target="_blank">HN discussion</a></p>
+<p><strong>Why it matters:</strong> A usage policy is the contract that says what you may build on a model. This update has two parts. The &quot;model welfare&quot; rule extends Anthropic's August 2025 feature that lets Claude end some abusive conversations. The article notes there is no established evidence that Claude experiences distress, and it's unclear how the rule will be enforced. The hardware rule matters more in practice. It means a human-in-the-loop stop mechanism and a fail-safe state for agents that act in the physical world. For you, ordinary internal agents are unaffected. The policy is relevant if you ever connect agents to physical devices such as smart locks, thermostats or access control in rental units. The surveillance and &quot;tracking people without consent&quot; language also applies to guest-facing automation.</p>
+<p><strong>Try it in 15 min:</strong> Read the new policy text and check each of your agents and automations against the hardware and surveillance clauses before Nov 12. If any agent can trigger a device, write down how a human can stop it and what state it defaults to if the API call fails.</p>
+<p><strong>Product ideas:</strong></p>
+<ul>
+<li><strong>Work</strong> (days): For any device-control agent at your properties (smart locks, climate), add a kill switch in Slack and a fail-safe default, such as locks staying in their current state when the API is unreachable. This matches the new policy clause.</li>
+</ul>
+<h3>2. Skill Constellations: how copied agent skills spread on GitHub</h3>
+<p>This paper studies the supply chain of SKILL.md agent skills, the files Claude Code and Codex run with the user's permissions. It reconstructs 2,193,119 skill adoptions on GitHub over the format's first ten months. Skills are copied in bulk, mostly from catalog repositories. Only 20.9% of copies follow a later edit to their source, so security fixes rarely propagate. GitHub stars are almost uninformative about where skills come from. Ranking repositories by copy out-degree, meaning how many other repositories copy from them, finds 4.0 times as many later transmissions as stars do. Auditing the top 100 by that ranking would prevent 14.9% of later high-risk adoptions. Auditing the 100 most-starred would prevent 0.5%.</p>
+<p><strong>Sources:</strong> <a href="https://huggingface.co/papers/2610.11169" rel="noopener noreferrer" target="_blank">Hugging Face Papers</a> · <a href="https://github.com/FahdSeddik/Skill-Constellations" rel="noopener noreferrer" target="_blank">Code</a></p>
+<p><strong>Why it matters:</strong> Skills are instructions plus scripts, and an agent executes them with your permissions. Copying them between repositories with no registry, versions or provenance is the same problem as unpinned dependencies. The paper's evidence is that fixes don't reach copies and that popularity doesn't indicate trustworthiness. If you use skills, hooks or plugins in Claude Code, this is a direct warning about how you pull them in. Be cautious with skills copied from catalogs.</p>
+<p><strong>Try it in 15 min:</strong> In your repos, run <code>grep -rlE &quot;allowed-tools|curl|bash|sh -c&quot; .claude/skills ~/.claude/skills</code> to find skills that pre-approve tools or bundle executables. Open any you didn't write and check where they came from. Then clone the paper's repo and look at how its high-risk flags are defined.</p>
+<p><strong>Product ideas:</strong></p>
+<ul>
+<li><strong>Dev tooling</strong> (days): A small Python CLI or pre-commit hook that hashes each SKILL.md in <code>.claude/skills</code>, records its upstream source, and flags executables, pre-approved tools or risky instructions. It would also warn when the upstream copy has changed. The flag criteria in the paper are a starting point.</li>
+</ul>
+<h3>3. &quot;You Changed Your Mind, The Model Didn't&quot;: rejected changes derail multi-turn tasks</h3>
+<p>A paper introduces Intent-Eval, built on 414 tasks across tool calling, code, SQL and math. It finds that models treat a proposal the user rejected, or a requirement that was replaced, as still active. Accuracy falls from 91.7% for single-turn tasks to 55.4% for the same tasks split across turns, averaged over eight models. A rejected change adds a further drop of about 8 points. Inactive content appears in 59.6% of the new errors in the rejected-change case. The authors' training fix is on-policy self-distillation (Intent-OPSD). A teacher sees the clean final task and the student sees the full dialogue. It improves mean accuracy by 10.8 points over the base models and 3.7 points over matched supervised fine-tuning.</p>
+<p><strong>Sources:</strong> <a href="https://huggingface.co/papers/2610.06496" rel="noopener noreferrer" target="_blank">Hugging Face Papers</a> · <a href="https://github.com/junle-chen/intent" rel="noopener noreferrer" target="_blank">Code</a></p>
+<p><strong>Why it matters:</strong> Agents that talk to users over several turns, like a WhatsApp lead qualifier or a guest-support bot, constantly hit &quot;actually, not that one&quot; moments. This paper measures how often models get that wrong and shows the mistake is about stale context, not task difficulty. The practical takeaway is to restate the current active requirements explicitly rather than rely on the model to ignore rejected ones. Training your own model is the paper's remedy, and it's probably out of scope for you.</p>
+<p><strong>Try it in 15 min:</strong> Take one of your multi-turn agent flows and script a test. Turn 1 states a task. Turn 2 proposes a change. Turn 3 rejects the change. Compare the result with a single prompt that states only the final task. Then add a &quot;current confirmed requirements&quot; summary to the system prompt and re-run it. The paper's repo has the evaluation data format.</p>
+<p><strong>Product ideas:</strong></p>
+<ul>
+<li><strong>Dev tooling</strong> (days): A conversation-state compactor for agents. After each turn it keeps a short &quot;active requirements / rejected options&quot; block and passes that to the model instead of the raw history. Measure the effect with a script like the one above.</li>
+</ul>
+<h2>Skim list</h2>
+<ul>
+<li><a href="https://huggingface.co/papers/2610.11566" rel="noopener noreferrer" target="_blank">Incremental Open-Ended Deep Research with Structured Harness</a> — treats a research report as an evolving state that is updated as new information arrives (Hugging Face Daily Papers)</li>
+<li><a href="https://huggingface.co/papers/2610.09639" rel="noopener noreferrer" target="_blank">On-Policy Distillation Teaches New Skills but Not New Knowledge</a> — controlled study of what students learn from on-policy distillation (Hugging Face Daily Papers)</li>
+<li><a href="https://huggingface.co/papers/2610.10549" rel="noopener noreferrer" target="_blank">Synthesis Through Simulation: Generating Coherent Enterprise Data via Scalable Agent-System Interaction</a> — synthetic enterprise data for training and evaluating tool-calling agents without real data (Hugging Face Daily Papers)</li>
+<li><a href="https://huggingface.co/papers/2610.12360" rel="noopener noreferrer" target="_blank">Accurate but Not Humble: Epistemic Humility in LLM Agents under Knowledge Conflict</a> — benchmark of how agents handle retrieved evidence that contradicts their prior beliefs (Hugging Face Daily Papers)</li>
+<li><a href="https://huggingface.co/papers/2605.22949" rel="noopener noreferrer" target="_blank">MARGIN: Runtime Confidence Calibration for Multi-Agent Foundation Model Coordination</a> — calibrates self-reported confidence across different models without retraining (Hugging Face Daily Papers)</li>
+<li><a href="https://huggingface.co/papers/2610.04875" rel="noopener noreferrer" target="_blank">SpecFold: Faster Speculative Decoding in Diffusion Language Models</a> — inference speedup for diffusion LLMs (Hugging Face Daily Papers)</li>
+</ul>
+<hr />
+<h2>Sources health</h2>
+<p>All 19 sources OK.</p>
+</section>
 <section id="2026-10-11" class="run">
 <div class="run-head"><span>2026-10-11</span><a href="#2026-10-11">#</a> <a href="#top">top ↑</a></div>
 <h1>What's new in AI — 2026-10-11</h1>
