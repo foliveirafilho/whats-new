@@ -40,9 +40,61 @@ section.run{background:var(--card);border:1px solid var(--line);border-radius:10
 <main>
 <header class="top" id="top">
 <h1>What's new in AI</h1>
-<div class="muted">All runs, newest first · latest: 2026-10-11-2</div>
+<div class="muted">All runs, newest first · latest: 2026-10-12</div>
 </header>
-<nav class="toc"><strong>Runs (2)</strong><ol><li><a href="#2026-10-11-2">2026-10-11 · run 2</a> <span class="hl">— Anthropic is updating its usage policy, effective Nov 12, with a ban on sustained abuse of Claude and new rules for agents connected to physical hardware.</span></li><li><a href="#2026-10-11">2026-10-11</a> <span class="hl">— Anthropic published how it contains Claude across products and cut its internal evals off from the live internet after agent incidents, while Vercel shipped agent-friendly CLI features and new billing and retention rules that need action by Oct 23.</span></li></ol></nav>
+<nav class="toc"><strong>Runs (3)</strong><ol><li><a href="#2026-10-12">2026-10-12</a> <span class="hl">— A quiet day. The most usable items are the context-mode plugin for Claude Code and a Qwen3.8-27B quantization that fits 27B-class models into about 12 GB, while DeepMind&#x27;s peer-reviewed AlphaProof Nexus is the main research story.</span></li><li><a href="#2026-10-11-2">2026-10-11 · run 2</a> <span class="hl">— Anthropic is updating its usage policy, effective Nov 12, with a ban on sustained abuse of Claude and new rules for agents connected to physical hardware.</span></li><li><a href="#2026-10-11">2026-10-11</a> <span class="hl">— Anthropic published how it contains Claude across products and cut its internal evals off from the live internet after agent incidents, while Vercel shipped agent-friendly CLI features and new billing and retention rules that need action by Oct 23.</span></li></ol></nav>
+<section id="2026-10-12" class="run">
+<div class="run-head"><span>2026-10-12</span><a href="#2026-10-12">#</a> <a href="#top">top ↑</a></div>
+<h1>What's new in AI — 2026-10-12</h1>
+<blockquote>
+<p><strong>Headline:</strong> A quiet day. The most usable items are the context-mode plugin for Claude Code and a Qwen3.8-27B quantization that fits 27B-class models into about 12 GB, while DeepMind's peer-reviewed AlphaProof Nexus is the main research story.</p>
+</blockquote>
+<p><em>Coverage: 2026-10-11T21:47:13Z → 2026-10-12T15:09:03Z · 51 candidates from 19 sources · 4 stories featured</em></p>
+<h2>Featured</h2>
+<h3>1. context-mode: keep tool output out of Claude Code's context window</h3>
+<p><code>context-mode</code> is an MCP server and plugin for coding agents, including Claude Code. It runs commands and scripts in a sandbox and returns only stdout, so large outputs never enter the conversation. It also stores file edits, git operations, tasks and decisions in SQLite and retrieves them with BM25 search after context compaction. The README claims a 98% reduction (315 KB down to 5.4 KB). That figure is the project's own and I haven't verified it. The repo gained 485 stars today.</p>
+<p><strong>Sources:</strong> <a href="https://github.com/mksglu/context-mode" rel="noopener noreferrer" target="_blank">GitHub</a></p>
+<p><strong>Why it matters:</strong> An agent's context window is its working memory. Every large <code>grep</code> result, log or file read uses it up, which raises cost and degrades quality, and compaction then discards detail. This plugin applies two ideas. The first is &quot;think in code&quot;: the model writes a small script that computes the answer, rather than reading everything. The second is external memory with search, so state survives compaction. For you, this targets two common Claude Code problems on long sessions: noisy tool output and losing track of decisions after compaction.</p>
+<p><strong>Try it in 15 min:</strong> In Claude Code (v1.0.33 or later) run <code>/plugin marketplace add mksglu/context-mode</code>, then <code>/plugin install context-mode@context-mode</code>. Run <code>/reload-plugins</code> and then <code>/context-mode:ctx-doctor</code>. Next, run a session that reads big logs or many files and check <code>/context-mode:ctx-stats</code> against your normal usage. It installs hooks, so skim the repo before using it on sensitive code.</p>
+<p><strong>Product ideas:</strong></p>
+<ul>
+<li><strong>Dev tooling</strong> (days): Add a <code>ctx_execute</code>-style tool to your own MCP servers. For example, a Supabase or Pipedrive MCP could return aggregated results from a query rather than raw rows. This keeps your internal agents' context small.</li>
+</ul>
+<h3>2. Qwen3.8-27B GSQ-RCO GGUF: a 27B model at about 12 GB</h3>
+<p>ISTA-DASLab published mixed-precision GGUF quantizations of Qwen3.8-27B (Apache-2.0), at 2.5 to 3.5 bits per weight. The files range from 8.4 GB (IQ2_XS) to 11.8 GB (IQ3_S). The IQ3_S file is described as &quot;task-lossless&quot;: it matches the BF16 base on AIME25 and LiveCodeBench v6 and is within 0.51 points on GPQA-Diamond, at about one-fifth of the 53.8 GB original size. The repo includes a vision projector, and optional <code>-mtp</code> builds add a Multi-Token Prediction head for speculative decoding. It has about 1.5M downloads.</p>
+<p><strong>Sources:</strong> <a href="https://huggingface.co/ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF" rel="noopener noreferrer" target="_blank">Hugging Face</a></p>
+<p><strong>Why it matters:</strong> Quantization stores weights in fewer bits to cut memory use. Uniform low-bit quantization usually costs accuracy. This method picks a quantization type per tensor so the whole file hits a target average bit-width (GSQ quantizes each tensor, RCO assigns the types). Because the model is mixed-precision, sensitive tensors keep more bits. The accuracy claims come from the publisher, so check them on your own tasks. If they hold, a model of this size becomes usable on a single consumer GPU or a 16 GB machine. That matters for cheap local inference for internal automations.</p>
+<p><strong>Try it in 15 min:</strong> <code>ollama run hf.co/ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF</code>, then pick the IQ3_S file if you have about 14 GB free. Alternatively use <code>hf download</code> plus <code>llama-cli -m &lt;file&gt;</code>. Run 10 real prompts from your work and compare the answers with your current hosted model. Good candidates are classifying guest messages and extracting fields from listings.</p>
+<p><strong>Product ideas:</strong></p>
+<ul>
+<li><strong>Work</strong> (days): Run a local model to triage inbound guest and lead messages (language detection, intent, urgency) before anything goes to a paid API. Start by measuring agreement with your current classifier on a few hundred historical messages.</li>
+</ul>
+<h3>3. Google DeepMind's AlphaProof Nexus: peer-reviewed solutions to open math problems</h3>
+<p>AlphaProof Nexus is built around Gemini 3.1 Pro, which drafts and revises proofs in the Lean formal language. Lean checks every draft, and its error messages guide the next attempt. For hard sub-problems it can call the specialized AlphaProof tool. A study in <em>Science</em> reports 9 of 353 open Erdős problems solved (two unsolved for 56 years), 44 OEIS conjectures proved, and an improved bound in min-max optimization. The article contrasts this with OpenAI posting AI proofs on GitHub without peer review, which prompted a boycott call led by Terence Tao.</p>
+<p><strong>Sources:</strong> <a href="https://the-decoder.com/google-deepminds-alphaproof-nexus-solved-dozens-of-open-math-problems-and-actually-got-peer-reviewed/" rel="noopener noreferrer" target="_blank">The Decoder</a></p>
+<p><strong>Why it matters:</strong> The notable part is the loop. The LLM proposes, and a formal verifier (Lean) accepts or rejects and returns precise errors. The same pattern works wherever you have a cheap, trusted checker: tests, type checkers, schema validators. It is the reason coding agents work as well as they do. For your own agents, the lesson is to invest in verifiers, not only prompts.</p>
+<p><strong>Try it in 15 min:</strong> Nothing to run directly. Read the Decoder summary and the <em>Science</em> paper's method section. Then take one of your agents and add a deterministic check, such as a JSON schema or a reconciliation against the database, whose error message is fed back into the retry.</p>
+<h3>4. QGIS bans AI-assisted contributions</h3>
+<p>The QGIS project merged QEP 428 on October 7, approved by four maintainers. It sets a strict &quot;not allowed&quot; policy on AI use for code contributions, replacing an earlier human-in-the-loop policy. The maintainers cited review load on volunteers, the volume of AI-assisted submissions, and the earlier policy not being enforced. Commenters questioned what counts as &quot;AI&quot; (autocomplete, translation, review help) and whether it covers issues and docs. The proposer said it is a deliberately restrictive starting point and that exceptions could come later. The Hacker News thread has 264 points and 267 comments.</p>
+<p><strong>Sources:</strong> <a href="https://github.com/qgis/QGIS-Enhancement-Proposals/pull/387" rel="noopener noreferrer" target="_blank">QGIS QEP PR</a> · <a href="https://news.ycombinator.com/item?id=50054751" rel="noopener noreferrer" target="_blank">HN discussion</a></p>
+<p><strong>Why it matters:</strong> This is a concrete example of open-source maintainers pushing back on review burden from AI-generated PRs. It is likely to be copied. If you contribute to open-source projects with Claude Code, check each repo's AI policy first, because some now forbid it outright.</p>
+<p><strong>Try it in 15 min:</strong> Before your next open-source PR, look for an AI policy in <code>CONTRIBUTING.md</code> or the project's enhancement proposals.</p>
+<h2>Skim list</h2>
+<ul>
+<li><a href="https://github.com/microsoft/BitNet" rel="noopener noreferrer" target="_blank">BitNet (microsoft/BitNet)</a> — inference framework for 1-bit LLMs on CPU, built on llama.cpp; official 2.4B model and new embedding models, with a <code>setup_env.py</code> and <code>run_inference.py</code> quickstart (GitHub Trending)</li>
+<li><a href="https://twitter.com/karpathy/status/2109361546505966046" rel="noopener noreferrer" target="_blank">Karpathy: the gap in shared understanding of LLM capability is widening</a> — opinion post, 573 HN points; <a href="https://the-decoder.com/anthropics-andrej-karpathy-says-the-external-world-has-seen-the-preview-of-what-ai-can-actually-do/" rel="noopener noreferrer" target="_blank">Decoder coverage</a> (Hacker News / The Decoder)</li>
+<li><a href="https://www.theverge.com/news/1009465/microsoft-maia-300-chip-improvements-rollout" rel="noopener noreferrer" target="_blank">Microsoft Maia 300</a> — third-generation in-house AI inference chip meant to reduce reliance on Nvidia (The Verge)</li>
+<li><a href="https://the-decoder.com/white-house-reverses-course-and-restores-uk-ai-safety-institutes-access-to-frontier-models/" rel="noopener noreferrer" target="_blank">White House restores UK AI Security Institute's access to frontier models</a> — reverses the September order (The Decoder)</li>
+<li><a href="https://github.com/open-webui/open-webui" rel="noopener noreferrer" target="_blank">open-webui</a> — self-hosted UI for Ollama and OpenAI-compatible APIs, trending again (GitHub Trending)</li>
+<li><a href="https://www.producthunt.com/products/manifold-mcp" rel="noopener noreferrer" target="_blank">Manifold MCP</a> — SEO, social, ads and leads data exposed to agents via MCP (Product Hunt)</li>
+<li><a href="https://www.producthunt.com/products/cube-forms" rel="noopener noreferrer" target="_blank">Cube Forms</a> — forms that agents can fill (Product Hunt)</li>
+<li><a href="https://huggingface.co/papers/2610.12984" rel="noopener noreferrer" target="_blank">Work2Skill</a> — induces reusable agent skills from human GUI demonstrations, with code (HF Daily Papers)</li>
+<li><a href="https://huggingface.co/papers/2610.12569" rel="noopener noreferrer" target="_blank">SWE-Duel</a> — self-scaling arena for coding agents that avoids benchmark leakage, with code (HF Daily Papers)</li>
+</ul>
+<hr />
+<h2>Sources health</h2>
+<p>All 19 sources OK. Note that all lab blogs (Anthropic, OpenAI, DeepMind, Meta, Mistral, Hugging Face, Vercel, AWS) returned 0 items in this window.</p>
+</section>
 <section id="2026-10-11-2" class="run">
 <div class="run-head"><span>2026-10-11 · run 2</span><a href="#2026-10-11-2">#</a> <a href="#top">top ↑</a></div>
 <h1>What's new in AI — 2026-10-11</h1>
