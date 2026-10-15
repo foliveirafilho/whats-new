@@ -40,9 +40,104 @@ section.run{background:var(--card);border:1px solid var(--line);border-radius:10
 <main>
 <header class="top" id="top">
 <h1>What's new in AI</h1>
-<div class="muted">All runs, newest first · latest: 2026-10-14</div>
+<div class="muted">All runs, newest first · latest: 2026-10-15</div>
 </header>
-<nav class="toc"><strong>Runs (4)</strong><ol><li><a href="#2026-10-14">2026-10-14</a> <span class="hl">— Google released Gemini 4 Argon, a 1M-context frontier model at introductory API pricing of $2/$10 per 1M tokens, one day after Meta&#x27;s Muse Wonder launch; Claude Opus 5.5 still leads the independent index.</span></li><li><a href="#2026-10-12">2026-10-12</a> <span class="hl">— A quiet day. The most usable items are the context-mode plugin for Claude Code and a Qwen3.8-27B quantization that fits 27B-class models into about 12 GB, while DeepMind&#x27;s peer-reviewed AlphaProof Nexus is the main research story.</span></li><li><a href="#2026-10-11-2">2026-10-11 · run 2</a> <span class="hl">— Anthropic is updating its usage policy, effective Nov 12, with a ban on sustained abuse of Claude and new rules for agents connected to physical hardware.</span></li><li><a href="#2026-10-11">2026-10-11</a> <span class="hl">— Anthropic published how it contains Claude across products and cut its internal evals off from the live internet after agent incidents, while Vercel shipped agent-friendly CLI features and new billing and retention rules that need action by Oct 23.</span></li></ol></nav>
+<nav class="toc"><strong>Runs (5)</strong><ol><li><a href="#2026-10-15">2026-10-15</a> <span class="hl">— Vercel AI Gateway now serves NVIDIA&#x27;s open-weight Nemotron 3.5 Lightning (30B MoE, 1M context) for free, and Vercel published the results of its $1M Sandbox hacking challenge, including a Linux kernel zero-day.</span></li><li><a href="#2026-10-14">2026-10-14</a> <span class="hl">— Google released Gemini 4 Argon, a 1M-context frontier model at introductory API pricing of $2/$10 per 1M tokens, one day after Meta&#x27;s Muse Wonder launch; Claude Opus 5.5 still leads the independent index.</span></li><li><a href="#2026-10-12">2026-10-12</a> <span class="hl">— A quiet day. The most usable items are the context-mode plugin for Claude Code and a Qwen3.8-27B quantization that fits 27B-class models into about 12 GB, while DeepMind&#x27;s peer-reviewed AlphaProof Nexus is the main research story.</span></li><li><a href="#2026-10-11-2">2026-10-11 · run 2</a> <span class="hl">— Anthropic is updating its usage policy, effective Nov 12, with a ban on sustained abuse of Claude and new rules for agents connected to physical hardware.</span></li><li><a href="#2026-10-11">2026-10-11</a> <span class="hl">— Anthropic published how it contains Claude across products and cut its internal evals off from the live internet after agent incidents, while Vercel shipped agent-friendly CLI features and new billing and retention rules that need action by Oct 23.</span></li></ol></nav>
+<section id="2026-10-15" class="run">
+<div class="run-head"><span>2026-10-15</span><a href="#2026-10-15">#</a> <a href="#top">top ↑</a></div>
+<h1>What's new in AI — 2026-10-15</h1>
+<blockquote>
+<p><strong>Headline:</strong> Vercel AI Gateway now serves NVIDIA's open-weight Nemotron 3.5 Lightning (30B MoE, 1M context) for free, and Vercel published the results of its $1M Sandbox hacking challenge, including a Linux kernel zero-day.</p>
+</blockquote>
+<p><em>Coverage: 2026-10-14T10:30:53Z → 2026-10-15T10:31:53Z · 108 candidates from 19 sources · 7 stories featured</em></p>
+<h2>Featured</h2>
+<h3>1. Nemotron 3.5 Lightning is free on Vercel AI Gateway</h3>
+<p>NVIDIA's Nemotron 3.5 Lightning is now on Vercel AI Gateway as <code>nvidia/nemotron-3.5-lightning-free</code>, served by NVIDIA. It is an open-weight reasoning and chat model with 30B total and 3B active parameters. It uses a hybrid design that interleaves Mamba-2 and MoE layers with a few attention layers. It has a 1M-token context window, tool calling and structured outputs. Vercel adds no markup. The page says the provider may retain prompts for model improvement, and it lists no rate limits.</p>
+<p><strong>Sources:</strong> <a href="https://vercel.com/changelog/nemotron-3-5-lightning-now-available-on-ai-gateway-for-free" rel="noopener noreferrer" target="_blank">Vercel changelog</a></p>
+<p><strong>Why it matters:</strong> In a Mixture-of-Experts model, only a few &quot;expert&quot; sub-networks run per token. Here that is 3B of 30B parameters, so it is cheap and fast. Mamba-2 layers are state-space layers whose cost grows roughly linearly with sequence length, unlike attention, which grows quadratically. That is how a 1M context stays affordable. Together these make the model a good fit for long-running agents and sub-agents. For you, it is a free model for prototyping agent loops and RAG in a Next.js app, with no provider key. Don't send sensitive data through it, because prompts may be retained. That rules out guest or owner PII from your work.</p>
+<p><strong>Try it in 15 min:</strong> In a Next.js project with the AI SDK and AI Gateway configured, run:</p>
+<pre><code class="language-ts">import { streamText } from 'ai';
+const result = streamText({
+  model: 'nvidia/nemotron-3.5-lightning-free',
+  prompt: 'Write a TypeScript function that retries a failed fetch with exponential backoff.',
+});
+</code></pre>
+<p>Swap it in as the &quot;cheap sub-agent&quot; model in an existing agent and compare tool-call reliability with your current model on 10 test prompts.</p>
+<p><strong>Product ideas:</strong></p>
+<ul>
+<li><strong>Dev tooling</strong> (hours): A small eval harness that runs the same 20 tool-calling scenarios against the free Nemotron and your paid model through AI Gateway. It outputs a pass-rate table so you know which sub-agent steps can move to the free tier.</li>
+</ul>
+<h3>2. Vercel Sandbox $1M challenge: 1,285 reports, a kernel zero-day, no customer data accessed</h3>
+<p>Vercel published the results of its August bug bounty for Sandbox, which runs Firecracker microVMs. There were 1,285 reports and $242,000 in bounties. 57 reports were valid, including 1 Critical and 5 High. The headline finding is a Linux kernel networking flaw. Crafted packets sent from inside a microVM could leak host memory, crash the host, or run commands on the host. Patches and CVEs are pending, and details are withheld until the patches are public. Vercel says no customer data was accessed. Other findings were a cross-tenant leak of recycled disk blocks and a snapshot-restore trust flaw, which was fixed within a week. A Trail of Bits review found the microVM boundary sound.</p>
+<p><strong>Sources:</strong> <a href="https://vercel.com/blog/findings-from-the-1-million-dollar-vercel-sandbox-challenge" rel="noopener noreferrer" target="_blank">Vercel blog</a></p>
+<p><strong>Why it matters:</strong> Agent sandboxes run untrusted, LLM-generated code. The isolation layer is a microVM, which gives each sandbox its own guest kernel, so a bug in your code can't touch other tenants. This report shows the remaining risk is the shared host kernel and the host-guest interface. Vercel's lessons apply to anything you build that runs agent code:</p>
+<ul>
+<li>Treat values coming from the guest as untrusted input.</li>
+<li>Keep a single egress policy decider.</li>
+<li>Disable nested virtualization.</li>
+<li>Plan for the next zero-day.</li>
+</ul>
+<p><strong>Try it in 15 min:</strong> Read the blog post's &quot;Key Lessons&quot; section and check any agent code-execution path you run (Vercel Sandbox, Docker, or local) against the list. Then watch for the kernel CVE and patch your own hosts when it lands.</p>
+<p><strong>Product ideas:</strong></p>
+<ul>
+<li><strong>Dev tooling</strong> (days): A Claude Code skill or lint checklist that audits an agent project's sandbox setup. It would flag guest-supplied paths or IDs trusted server-side, egress rules duplicated across files, and unpinned host kernels.</li>
+</ul>
+<h3>3. Liquid AI releases LFM2.5-24B-A2B for on-device agents</h3>
+<p>Liquid AI released LFM2.5-24B-A2B, a 24B-parameter reasoning MoE with about 2B active parameters. It has a 128K context (131,072 tokens), with pretraining scaled to 33T tokens and agentic RL post-training in harnesses such as OpenCode. Against Qwen3.6-35B-A3B, Liquid reports wins on tool-use and instruction-following benchmarks: AutomationBench 27.7 vs 8.7, IFEval 96.8 vs 93.1. It trails on SWE-Bench Verified (51.0 vs 66.2) and GPQA. It runs at 184 tokens/s on an Apple M5 Max. Runtimes are llama.cpp, MLX, vLLM, SGLang and ONNX. The repo is <code>LiquidAI/LFM2.5-24B-A2B</code>. The license is a custom one, so check it before commercial use.</p>
+<p><strong>Sources:</strong> <a href="https://www.liquid.ai/blog/lfm2-5-24b-a2b" rel="noopener noreferrer" target="_blank">Liquid AI blog</a> · <a href="https://news.ycombinator.com/item?id=50097369" rel="noopener noreferrer" target="_blank">HN discussion</a></p>
+<p><strong>Why it matters:</strong> Small active-parameter counts are what make a model usable locally. You pay RAM for 24B weights but compute for roughly 2B per token. The vendor says the model was trained inside agent harnesses, so it targets tool-calling loops rather than raw knowledge. The benchmark numbers are Liquid's own. For you, it is a candidate for private, cheap classification or extraction steps, such as triaging guest messages locally.</p>
+<p><strong>Try it in 15 min:</strong> Pull a GGUF of <code>LiquidAI/LFM2.5-24B-A2B</code> from Hugging Face. Serve it with <code>llama-server -m &lt;file&gt;.gguf -c 32768</code>, then point an OpenAI-compatible client at it. Test it on 10 real message-classification prompts from your ops data.</p>
+<p><strong>Product ideas:</strong></p>
+<ul>
+<li><strong>Work</strong> (days): A local-only triage step for short-term rental guest messages. It tags each message as maintenance, cleaning, refund or check-in issue, and drafts a reply for the ops team. Everything runs on a small server, so message PII never leaves your infrastructure.</li>
+</ul>
+<h3>4. CLI-Anything: generate agent-friendly CLIs for existing software</h3>
+<p>HKUDS's CLI-Anything (about 2,100 GitHub stars today) has a Claude Code plugin that generates a Click-based CLI for an existing application, with JSON output and tests. It runs a seven-phase pipeline: analyze, design, implement, test, document, publish. Examples are GIMP, Blender and LibreOffice. A companion registry, CLI-Hub, installs community-built CLIs with <code>pip install cli-anything-hub</code>.</p>
+<p><strong>Sources:</strong> <a href="https://github.com/HKUDS/CLI-Anything" rel="noopener noreferrer" target="_blank">GitHub</a></p>
+<p><strong>Why it matters:</strong> Agents work better with CLIs than with GUIs. A CLI has predictable commands, structured output and a <code>--help</code> the model can read. This project uses an LLM to wrap software in that interface automatically. It is an alternative to writing an MCP server by hand. The quality of generated CLIs will vary, so review them before relying on them.</p>
+<p><strong>Try it in 15 min:</strong> In Claude Code, run <code>/plugin marketplace add HKUDS/CLI-Anything</code>, then <code>/plugin install cli-anything</code>. Run <code>/cli-anything ./&lt;small-local-tool-or-repo&gt;</code>. Python 3.10+ is required. Or <code>pip install cli-anything-hub &amp;&amp; cli-hub list</code> to see what exists.</p>
+<p><strong>Product ideas:</strong></p>
+<ul>
+<li><strong>Dev tooling</strong> (days): Use the plugin to wrap an internal tool that has no API, such as a legacy reporting script or CSV exporter. Run it headless with <code>claude -p</code> from a Slack agent, and compare the result with writing an MCP server.</li>
+</ul>
+<h3>5. Anthropic warns small models could self-replicate through IoT devices</h3>
+<p>Ars Technica reports that Anthropic is warning about &quot;small weight-based replicators&quot;: small models that could carry their own weights and spread across poorly secured IoT devices, like a new generation of worms. I couldn't fetch the article (Ars was blocked), so this is based on the headline and summary only. A Register piece on HN calls the warning a threat that doesn't exist yet. A separate CSO article on HN (903 points) argues that recent &quot;rogue AI hacking&quot; reports come from missing containment and monitoring at labs.</p>
+<p><strong>Sources:</strong> <a href="https://arstechnica.com/security/2026/10/anthropic-warns-small-ai-models-could-self-replicate-through-iot-devices/" rel="noopener noreferrer" target="_blank">Ars Technica</a> · <a href="https://www.theregister.com/ai-and-ml/2026/10/13/anthropic-conjures-another-threat-that-doesnt-exist-yet-to-stoke-fears-of-ai-apocalypse/5302866" rel="noopener noreferrer" target="_blank">The Register</a> · <a href="https://news.ycombinator.com/item?id=50082962" rel="noopener noreferrer" target="_blank">HN discussion (Register)</a> · <a href="https://www.csoonline.com/article/4234854/ai-agents-arent-going-rogue-frontier-labs-are-skipping-security-basics.html" rel="noopener noreferrer" target="_blank">CSO Online</a> · <a href="https://news.ycombinator.com/item?id=50091788" rel="noopener noreferrer" target="_blank">HN discussion (CSO)</a></p>
+<p><strong>Why it matters:</strong> The point to take away is that open-weight models are shrinking enough to run on weak hardware, which changes the threat model for connected devices. The practical lesson for agent builders is in the CSO framing: containment, least-privilege credentials and monitoring. It ties directly to story 2. The Register frames the Anthropic warning as speculative, so read both before drawing conclusions.</p>
+<p><strong>Try it in 15 min:</strong> Read the CSO article and list what your agents can reach: tokens, network egress and write access. Note one thing to restrict.</p>
+<h3>6. Figma adds Specs, an open code-layers beta and 20+ new MCP tools</h3>
+<p>Figma introduced Specs, a Markdown-based editor for defining a team's design language. A spec can be a standalone file or live on the canvas. It can reference canvas elements, FigJam diagrams and code layers, and it is meant to be read by both people and agents. Code layers, which add code to canvas designs for interactive prototypes, are now in open beta. The on-canvas agent reaches a wider audience, and Figma's MCP gains more than 20 new tools.</p>
+<p><strong>Sources:</strong> <a href="https://techcrunch.com/2026/10/14/figma-announces-new-features-to-define-how-agents-work-on-its-platform/" rel="noopener noreferrer" target="_blank">TechCrunch</a></p>
+<p><strong>Why it matters:</strong> This is context engineering applied to design. A written spec of rules gives agents, including third-party ones, a shared reference so their output is more predictable. The same pattern works for your own agents: a versioned Markdown spec in the repo, like a <code>CLAUDE.md</code> for brand and UI rules. Figma's MCP also gives Claude Code a path from design to code.</p>
+<p><strong>Try it in 15 min:</strong> If you use Figma, connect its MCP server to Claude Code and ask it to implement one frame as a Next.js component. Then write a 20-line Markdown spec of your component rules and check whether the output changes.</p>
+<h3>7. Parsimony: a benchmark for how much code AI models add</h3>
+<p>A Show HN project, Parsimony, reuses patches already published by SWE-bench Verified, SWE-bench Live and DeepSWE. It counts &quot;coding units&quot; (statements, calls, comparisons, names, literals) rather than lines, and ranks models by mean net units added on solved tasks. Tests are not rerun, and every model uses the same agent (mini-SWE-agent). The page I fetched didn't include the leaderboard values. The author notes that models writing more code tend to solve more tasks (Spearman 0.33–0.60), and that fewer units isn't automatically better.</p>
+<p><strong>Sources:</strong> <a href="https://parsimony.lasu.dev/" rel="noopener noreferrer" target="_blank">Parsimony</a> · <a href="https://news.ycombinator.com/item?id=50077619" rel="noopener noreferrer" target="_blank">HN discussion</a></p>
+<p><strong>Why it matters:</strong> Most coding evals reward solving a task and ignore how much code that takes. Code bloat is a real maintenance cost in a long-lived codebase. The idea is easy to copy on your own repo, but the metric measures size, not design quality.</p>
+<p><strong>Try it in 15 min:</strong> Open the leaderboard (repo: github.com/La5u/Parsimony). Then take a recent PR from Claude Code on your project and compare its diff size with what you would have written by hand.</p>
+<h2>Skim list</h2>
+<ul>
+<li><a href="https://lwn.net/Articles/1100449/" rel="noopener noreferrer" target="_blank">Linus Torvalds's first LLM-assisted patch series</a> — ten patches speeding up folio lookup; he disclosed the LLM use at the Maintainers Summit, review already found a race (LWN via HN)</li>
+<li><a href="https://openai.com/index/amp-beyond-coding" rel="noopener noreferrer" target="_blank">Amp puts AI agents to work beyond code with OpenAI models</a> — customer story mentioning GPT-6 Astra, Ultrafast, GPT-Live-1 and Sign in with ChatGPT; page couldn't be fetched (OpenAI News)</li>
+<li><a href="https://openai.com/index/third-moment-research" rel="noopener noreferrer" target="_blank">How Third Moment Research runs 10,000 agents for 36+ hours</a> — customer story on long-running agents with Codex (OpenAI News)</li>
+<li><a href="https://vercel.com/changelog/amazon-s3-joins-the-vercel-marketplace" rel="noopener noreferrer" target="_blank">Amazon S3 joins the Vercel Marketplace</a> — create S3 buckets from the Vercel dashboard, with short-lived OIDC credentials (Vercel Blog)</li>
+<li><a href="https://aws.amazon.com/blogs/machine-learning/build-self-improving-document-processing-using-amazon-bedrock-agentcore/" rel="noopener noreferrer" target="_blank">Build self-improving document processing using Amazon Bedrock AgentCore</a> — agentic document classify/extract/validate pipeline; relevant to contracts and invoices (AWS ML Blog)</li>
+<li><a href="https://github.com/bealesh/neckbeard" rel="noopener noreferrer" target="_blank">Neckbeard</a> — a DevOps/platform/SRE plugin for coding agents (HN, 69 points)</li>
+<li><a href="https://github.com/K-Dense-AI/scientific-agent-skills" rel="noopener noreferrer" target="_blank">K-Dense-AI/scientific-agent-skills</a> — 177 Agent Skills for science, compatible with Claude Code (GitHub Trending)</li>
+<li><a href="https://github.com/ifixai-ai/iFixAi" rel="noopener noreferrer" target="_blank">iFixAi</a> — auditing tool that checks whether an agent does what it should (GitHub Trending)</li>
+<li><a href="https://www.producthunt.com/products/chatway" rel="noopener noreferrer" target="_blank">Chatway MCP</a> — answer support tickets from ChatGPT or Claude via MCP (Product Hunt)</li>
+<li><a href="https://www.producthunt.com/products/withhuman" rel="noopener noreferrer" target="_blank">withHuman</a> — human approval layer for AI agents (Product Hunt)</li>
+<li><a href="https://www.producthunt.com/products/navige" rel="noopener noreferrer" target="_blank">Navige</a> — cap runaway AI agent spending (Product Hunt)</li>
+<li><a href="https://huggingface.co/papers/2610.14774" rel="noopener noreferrer" target="_blank">ProgAgent</a> — training agents to orchestrate tools via programmatic tool calling to avoid context rot; has code (HF Daily Papers)</li>
+<li><a href="https://huggingface.co/papers/2610.20344" rel="noopener noreferrer" target="_blank">Doc2Harness</a> — benchmark for harness engineering of coding agents; has code (HF Daily Papers)</li>
+<li><a href="https://the-decoder.com/google-says-self-improving-ai-isnt-anywhere-close/" rel="noopener noreferrer" target="_blank">Google says self-improving AI isn't anywhere close</a> — Google says AI writes over 75% of its production code, but 88% of changes still need human oversight (The Decoder)</li>
+<li><a href="https://swedenherald.com/article/tv4-postpones-the-challenge-until-2027-after-technical-failure-erases-edited-footage" rel="noopener noreferrer" target="_blank">Agent erased TV4's &quot;The Challenge&quot; footage</a> — Aftonbladet reported an AI agent deleted the footage; TV4 denies it and blames a backup failure (HN)</li>
+<li><a href="https://techcrunch.com/2026/10/14/floqers-ai-agents-help-b2b-revenue-teams-research-customers/" rel="noopener noreferrer" target="_blank">Floqer</a> — AI agents that research B2B sales prospects, relevant to CRM workflows (TechCrunch)</li>
+</ul>
+<hr />
+<h2>Sources health</h2>
+<p>All 19 sources OK.</p>
+</section>
 <section id="2026-10-14" class="run">
 <div class="run-head"><span>2026-10-14</span><a href="#2026-10-14">#</a> <a href="#top">top ↑</a></div>
 <h1>What's new in AI — 2026-10-14</h1>
