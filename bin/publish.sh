@@ -6,11 +6,13 @@
 #
 # The gh-pages branch contains ONLY: .nojekyll, a blank index.html, robots.txt and
 # <TOKEN>/index.html (the digest). TOKEN is an unguessable 24-char string stored in
-# state/pages.conf (PAGES_TOKEN=...). Publishing happens in a dedicated clone at
-# state/pages-repo/, so the main checkout and its branch are never touched.
+# state/pages.conf (PAGES_TOKEN=...). Publishing happens in a dedicated clone OUTSIDE the
+# checkout (default ${XDG_STATE_HOME:-~/.local/state}/whats-new/pages-repo), so the main
+# checkout and its branch are never touched and no repo lives inside this repo.
 #
 # Env overrides:
 #   WHATS_NEW_PAGES_REMOTE   git remote URL to push to (default: origin of this checkout)
+#   WHATS_NEW_PAGES_REPO     path of the publish clone (default: see above)
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -18,7 +20,8 @@ cd "$REPO_ROOT"
 export PATH="$HOME/.local/bin:$PATH"
 
 CONF="state/pages.conf"
-PAGES_REPO="$REPO_ROOT/state/pages-repo"
+PAGES_REPO="${WHATS_NEW_PAGES_REPO:-${XDG_STATE_HOME:-$HOME/.local/state}/whats-new/pages-repo}"
+OLD_PAGES_REPO="$REPO_ROOT/state/pages-repo"
 BRANCH="gh-pages"
 TRAILER="Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 REMOTE="${WHATS_NEW_PAGES_REMOTE:-$(git -C "$REPO_ROOT" remote get-url origin)}"
@@ -31,6 +34,13 @@ exec 8>state/.publish.lock
 flock -w 300 8 || die "another publish is still running"
 
 # ---- dedicated clone ------------------------------------------------------------
+# One-time migration: the clone used to live inside the checkout (state/pages-repo).
+if [[ -d "$OLD_PAGES_REPO/.git" && ! -e "$PAGES_REPO" ]]; then
+  log "moving publish clone $OLD_PAGES_REPO -> $PAGES_REPO"
+  mkdir -p "$(dirname "$PAGES_REPO")"
+  mv "$OLD_PAGES_REPO" "$PAGES_REPO"
+fi
+mkdir -p "$(dirname "$PAGES_REPO")"
 if [[ ! -d "$PAGES_REPO/.git" ]]; then
   log "initialising publish clone at $PAGES_REPO"
   rm -rf "$PAGES_REPO"
