@@ -29,8 +29,9 @@ REMOTE="${WHATS_NEW_PAGES_REMOTE:-$(git -C "$REPO_ROOT" remote get-url origin)}"
 log() { printf '[publish] %s\n' "$*" >&2; }
 die() { log "ERROR: $*"; exit 1; }
 
-mkdir -p state
-exec 8>state/.publish.lock
+mkdir -p state "$(dirname "$PAGES_REPO")"
+# The publish clone is one per user now, so the lock lives next to it (not per checkout).
+exec 8>"$(dirname "$PAGES_REPO")/.publish.lock"
 flock -w 300 8 || die "another publish is still running"
 
 # ---- dedicated clone ------------------------------------------------------------
@@ -40,7 +41,14 @@ if [[ -d "$OLD_PAGES_REPO/.git" && ! -e "$PAGES_REPO" ]]; then
   mkdir -p "$(dirname "$PAGES_REPO")"
   mv "$OLD_PAGES_REPO" "$PAGES_REPO"
 fi
-mkdir -p "$(dirname "$PAGES_REPO")"
+if [[ -e "$PAGES_REPO" && ! -d "$PAGES_REPO/.git" ]]; then
+  # Never wipe something that is not our clone (e.g. a wrong WHATS_NEW_PAGES_REPO).
+  [[ -d "$PAGES_REPO" && -z "$(ls -A "$PAGES_REPO")" ]] || die "$PAGES_REPO exists and is not a git clone; refusing to touch it"
+fi
+if [[ -d "$PAGES_REPO/.git" ]]; then
+  cur="$(git -C "$PAGES_REPO" remote get-url origin 2>/dev/null || true)"
+  [[ -z "$cur" || "$cur" == "$REMOTE" ]] || die "$PAGES_REPO has origin $cur, not $REMOTE; refusing to reuse another repo"
+fi
 if [[ ! -d "$PAGES_REPO/.git" ]]; then
   log "initialising publish clone at $PAGES_REPO"
   rm -rf "$PAGES_REPO"
