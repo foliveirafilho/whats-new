@@ -75,7 +75,7 @@ top, each run in `<section id="YYYY-MM-DD[-n]">`) and pushes it to the
   everything and the digest has `noindex,nofollow` + `no-referrer`. Treat the URL
   like a secret link: anyone who has it can read it.
 - **gh-pages contains only** `.nojekyll`, a blank `index.html`, `robots.txt` and
-  `<token>/index.html`. Publishing uses its own clone in `state/pages-repo/`;
+  `<token>/index.html`. Publishing uses its own clone outside the checkout, in `${XDG_STATE_HOME:-~/.local/state}/whats-new/pages-repo/` (override with `WHATS_NEW_PAGES_REPO`);
   your working tree and branch are never touched. A commit is only made when
   the page actually changed.
 - **Rendering is sanitised** (reports come from untrusted web pages): raw HTML in
@@ -109,7 +109,7 @@ top, each run in `<section id="YYYY-MM-DD[-n]">`) and pushes it to the
 | `profile.md` | who the report is for — edit by hand |
 | `prompts/curate.md` | the curation prompt (`{{DATE}}` is substituted by run.sh) |
 | `sources.toml` | the source list |
-| `state/` (gitignored) | `seen.sqlite`, `last_success`, `candidates.json`, `logs/YYYY-MM-DD.log`, `pages.conf` (Pages token), `pages-repo/` (publish clone) |
+| `state/` (gitignored) | `seen.sqlite`, `last_success`, `candidates.json`, `logs/YYYY-MM-DD.log`, `pages.conf` (Pages token). The publish clone lives outside the checkout (see Publishing) |
 
 ## Security model
 
