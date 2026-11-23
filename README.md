@@ -125,8 +125,8 @@ locked down:
   settings; `--safe-mode` disables CLAUDE.md, hooks, skills, plugins, MCP;
   `--strict-mcp-config` with no `--mcp-config` means zero MCP servers.
 - Because `--restricted` ignores `~/.claude/settings.json`, `run.sh` passes
-  `--settings <tmp file>` with only its `apiKeyHelper` and `env` (e.g.
-  `ANTHROPIC_BASE_URL`), so the run authenticates like the rest of the machine
+  `--settings <tmp file>` with only its `apiKeyHelper` and
+  `env.ANTHROPIC_BASE_URL` (no other env key), so the run authenticates like the rest of the machine
   instead of a stale local OAuth token. The file is created with `umask 077`
   in the run's temp dir and never printed; without an `apiKeyHelper` the flag
   is left out. `WHATS_NEW_USER_SETTINGS` overrides the source file.

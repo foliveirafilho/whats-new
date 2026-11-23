@@ -85,11 +85,14 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 
 # --restricted ignores ~/.claude/settings.json, so Claude would lose the apiKeyHelper and env (ANTHROPIC_BASE_URL) the
 # rest of the machine authenticates with and fall back to a stale local OAuth token. --settings still applies under
-# --restricted: pass a minimal copy with only those two keys (never printed). No apiKeyHelper -> no --settings.
+# --restricted: pass a minimal copy with only the apiKeyHelper and env.ANTHROPIC_BASE_URL (never printed); any other
+# env key stays out, so a future secret or provider switch in settings.json doesn't leak into this run.
+# No apiKeyHelper -> no --settings.
 USER_SETTINGS="${WHATS_NEW_USER_SETTINGS:-$HOME/.claude/settings.json}"
 AUTH_SETTINGS="$TMP_DIR/settings.json"
-if [[ -f "$USER_SETTINGS" ]] && jq -e '.apiKeyHelper' "$USER_SETTINGS" >/dev/null 2>&1; then
-  (umask 077 && jq '{apiKeyHelper, env: (.env // {})}' "$USER_SETTINGS" >"$AUTH_SETTINGS") \
+if [[ -f "$USER_SETTINGS" ]] && jq -e '.apiKeyHelper | type == "string" and length > 0' "$USER_SETTINGS" >/dev/null 2>&1; then
+  (umask 077 && jq '{apiKeyHelper, env: ((.env // {}) | with_entries(select(.key == "ANTHROPIC_BASE_URL")))}' \
+     "$USER_SETTINGS" >"$AUTH_SETTINGS") \
     || fail "could not write the auth settings for claude"
   CLAUDE_CMD+=(--settings "$AUTH_SETTINGS")
 fi
