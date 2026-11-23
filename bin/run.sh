@@ -9,6 +9,7 @@
 #   WHATS_NEW_CLAUDE_BIN    claude binary (default $HOME/.local/bin/claude)
 #   WHATS_NEW_CLAUDE_TIMEOUT  max seconds per Claude run (default 1200)
 #   WHATS_NEW_PUBLISH       set to 0 to skip publishing the HTML digest to GitHub Pages (default 1)
+#   WHATS_NEW_USER_SETTINGS settings file whose apiKeyHelper/env go to claude via --settings (default ~/.claude/settings.json)
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -18,7 +19,7 @@ DRY_RUN=0
 for arg in "$@"; do
   case "$arg" in
     --dry-run) DRY_RUN=1 ;;
-    -h|--help) sed -n '2,11p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,12p' "$0"; exit 0 ;;
     *) echo "unknown argument: $arg" >&2; exit 2 ;;
   esac
 done
@@ -79,6 +80,23 @@ CLAUDE_CMD=(
   --max-budget-usd 3
 )
 
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "$TMP_DIR"' EXIT
+
+# --restricted ignores ~/.claude/settings.json, so Claude would lose the apiKeyHelper and env (ANTHROPIC_BASE_URL) the
+# rest of the machine authenticates with and fall back to a stale local OAuth token. --settings still applies under
+# --restricted: pass a minimal copy with only the apiKeyHelper and env.ANTHROPIC_BASE_URL (never printed); any other
+# env key stays out, so a future secret or provider switch in settings.json doesn't leak into this run.
+# No apiKeyHelper -> no --settings.
+USER_SETTINGS="${WHATS_NEW_USER_SETTINGS:-$HOME/.claude/settings.json}"
+AUTH_SETTINGS="$TMP_DIR/settings.json"
+if [[ -f "$USER_SETTINGS" ]] && jq -e '.apiKeyHelper | type == "string" and length > 0' "$USER_SETTINGS" >/dev/null 2>&1; then
+  (umask 077 && jq '{apiKeyHelper, env: ((.env // {}) | with_entries(select(.key == "ANTHROPIC_BASE_URL")))}' \
+     "$USER_SETTINGS" >"$AUTH_SETTINGS") \
+    || fail "could not write the auth settings for claude"
+  CLAUDE_CMD+=(--settings "$AUTH_SETTINGS")
+fi
+
 render_prompt() { sed "s/{{DATE}}/$TODAY/g" prompts/curate.md; }
 
 if (( DRY_RUN )); then
@@ -88,9 +106,6 @@ if (( DRY_RUN )); then
   printf '\n'
   exit 0
 fi
-
-TMP_DIR="$(mktemp -d)"
-trap 'rm -rf "$TMP_DIR"' EXIT
 
 # Runs Claude once; on success leaves the validated report in $TMP_DIR/report.md.
 run_claude() {
