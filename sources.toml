@@ -26,9 +26,11 @@ filters.require_date = true  # undated /news links are evergreen pages linked fr
 name = "Anthropic Engineering"
 category = "lab"
 kind = "scrape"
-# Engineering blog (Claude Code, agents, evals); no RSS either.
+# Engineering blog (Claude Code, agents, evals); no RSS either. Since ~19/11 the index links its posts under
+# /research/<slug> (older ones may still be /engineering/<slug>); /research/team/<x> pages have two segments and
+# don't match.
 url = "https://www.anthropic.com/engineering"
-filters.link_pattern = '^https://www\.anthropic\.com/engineering/[^/?#]+$'
+filters.link_pattern = '^https://www\.anthropic\.com/(engineering|research)/[^/?#]+$'
 
 [[source]]
 name = "OpenAI News"
