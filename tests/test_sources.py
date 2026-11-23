@@ -143,3 +143,27 @@ def test_parse_scrape_require_date_and_layout_change():
     assert [i["url"] for i in parse_scrape(page, s)] == ["https://lab.example/news/b"]
     with pytest.raises(ParseError):
         parse_scrape(b"<html><a href='/about'>About</a></html>", s)
+
+
+ENGINEERING_INDEX = b"""<html><body>
+<header><a href="/research">Research</a><a href="/engineering">Engineering</a></header>
+<main>
+<article><a href="/research/components-of-agent-memory"><h3>The components of agent memory</h3></a>
+<time>Nov 6, 2026</time></article>
+<article><a href="/engineering/older-post"><h3>An older engineering post</h3></a><time>Jan 5, 2026</time></article>
+<a href="/research/team/interpretability">Interpretability team page</a>
+</main></body></html>"""
+
+
+def test_anthropic_engineering_matches_research_posts():
+    """orq #419: since ~19/11 the engineering index links its posts under /research/<slug>; with the old
+    /engineering/ pattern every run raised ParseError. Uses the real sources.toml entry."""
+    from pathlib import Path
+
+    from whats_new.sources import load_sources
+
+    toml = Path(__file__).resolve().parent.parent / "sources.toml"
+    s = next(x for x in load_sources(toml) if x.name == "Anthropic Engineering")
+    urls = [i["url"] for i in parse_scrape(ENGINEERING_INDEX, s)]
+    assert urls == ["https://www.anthropic.com/research/components-of-agent-memory",
+                    "https://www.anthropic.com/engineering/older-post"]
